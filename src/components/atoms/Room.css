@@ -1,0 +1,39 @@
+.room {
+  padding: 0rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid lightgrey;
+  margin-bottom: 1rem;
+  width: 100%;
+  align-items: center;
+}
+.room:hover {
+  background-color: lightgray;
+  cursor: pointer;
+}
+.room-tag-container {
+  display: flex;
+  align-self: flex-start;
+  margin-top: 0.4rem;
+}
+.room-tag {
+  background-color: lightcyan;
+  padding: 0.3rem 0.5rem;
+  margin-left: 5px;
+  font-size: x-small;
+}
+.room-right {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  height: 100%;
+}
+.room-capacity {
+  height: fit-content;
+  margin-bottom: 0.4rem;
+  align-self: flex-end;
+}
+.room-capacity p {
+  margin: 0;
+  font-size: smaller;
+}
