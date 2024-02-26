@@ -92,6 +92,10 @@
   margin-left: 5px;
 }
 .book-button {
+  margin-right: "1rem";
+  margin-top: "1rem";
+}
+.book-button button {
   padding: 0.5rem 2rem;
   background-color: black;
   color: white;
@@ -100,7 +104,15 @@
   font-size: larger;
   cursor: pointer;
 }
-.book-button:hover {
+.book-button button:disabled {
+  cursor: not-allowed;
+  background-color: grey;
+}
+
+.book-button button:disabled:hover {
+  background-color: grey;
+}
+.book-button button:hover {
   background-color: darkslategray;
   transition: 0.7s;
 }

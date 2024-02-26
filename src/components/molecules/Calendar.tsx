@@ -1,8 +1,13 @@
-// src/components/Calendar.js
-import React, { useEffect, useMemo, useState } from "react";
-import "./css/Calendar.css";
-import useHomeStore from "../homeStore";
+import { useEffect, useState } from "react";
+import "../styles/Calendar.css";
+import useHomeStore from "../../store/homeStore";
 import axios from "axios";
+import Session from "../atoms/Session";
+import CalendarRoomInfo from "../atoms/CaledarRoomInfo";
+import CalendarDay from "../atoms/CaledarDay";
+import endpoints from "../../utils/endpoints";
+import messages from "../../utils/messages";
+
 const Calendar = () => {
   const [avail, setAvail] = useState<any[]>([]);
   const sessions = useHomeStore((state) => state.sessions);
@@ -12,8 +17,13 @@ const Calendar = () => {
   const setSelectedDate = useHomeStore((state) => state.setSelectedDate);
   const selectedSession = useHomeStore((state) => state.selectedSession);
   const setSelectedSession = useHomeStore((state) => state.setSelectedSession);
+  const setBookRoomCalledSwitch = useHomeStore(
+    (state) => state.setBookRoomCalledSwitch
+  );
+  const bookRoomCalledSwitch = useHomeStore(
+    (state) => state.bookRoomCalledSwitch
+  );
   const currentDate = new Date();
-
   const currentUser = JSON.parse(localStorage.getItem("user") ?? "{}");
 
   const daysInMonth = new Date(
@@ -34,18 +44,18 @@ const Calendar = () => {
         currentDate.getMonth() + 1
       ).padStart(2, "0")}-${currentDate.getDate()}`
     );
-    if (selectedRoomData._id) fetchAvailability();
+    if (selectedRoomData?._id) fetchAvailability();
   }, []);
 
   useEffect(() => {
-    if (selectedRoomData._id) {
+    if (selectedRoomData?._id) {
       fetchAvailability();
     }
-  }, [selectedRoomData._id, selectedDate]);
+  }, [selectedDate, selectedRoomData]);
 
   async function fetchSessions() {
     try {
-      const response = await axios.get("http://localhost:3001/api/sessions", {
+      const response = await axios.get(endpoints.getSessions, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
@@ -53,48 +63,48 @@ const Calendar = () => {
 
       setSessions(response.data);
     } catch (error) {
-      console.error("Error fetching rooms:", error);
+      console.error("Error fetching sessions:", error);
     }
   }
 
   async function fetchAvailability() {
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/booking-details?roomId=${selectedRoomData._id}&date=${selectedDate}`,
+        endpoints.fetchAvailability(selectedRoomData._id, selectedDate),
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
         }
       );
+
       setAvail(response.data);
     } catch (error) {
-      console.error("Error fetching rooms:", error);
+      console.error("Error fetching availability:", error);
     }
   }
   async function bookRoom() {
     if (selectedSession === "") {
-      alert("Please select a session");
+      alert(messages.selectASession);
       return;
     }
-    const response = await fetch(
-      "http://localhost:3001/api/booking-details/book",
+    const response = await axios.post(
+      endpoints.bookRom,
       {
-        method: "POST",
+        roomId: selectedRoomData?._id,
+        date: selectedDate,
+        session: selectedSession,
+      },
+      {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
-        body: JSON.stringify({
-          roomId: selectedRoomData._id,
-          date: selectedDate,
-          session: selectedSession,
-        }),
       }
     );
-    if (response.ok) {
-      alert("Room booked successfully");
-    }
+
+    alert(messages.roomBooked);
+    fetchAvailability();
+    setBookRoomCalledSwitch(!bookRoomCalledSwitch);
 
     setSelectedSession("");
   }
@@ -107,60 +117,18 @@ const Calendar = () => {
       );
     }
     for (let day = 1; day <= daysInMonth; day++) {
-      calendar.push(
-        <div
-          key={day}
-          className="calendar-day"
-          style={{
-            border:
-              day == selectedDate.split("-")[2]
-                ? "2px solid darkgreen"
-                : "1px solid lightgrey",
-          }}
-          onClick={() => {
-            setSelectedDate(
-              `${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`
-            );
-          }}
-        >
-          {day}
-        </div>
-      );
+      calendar.push(<CalendarDay day={day}></CalendarDay>);
     }
     return calendar;
   };
 
+  if (!selectedRoomData?._id) {
+    return <></>;
+  }
+
   return (
     <div className="calendar-container">
-      <div className="calendar-room">
-        <h2>{selectedRoomData?.name}</h2>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignSelf: "space-between",
-            marginRight: "1rem",
-          }}
-        >
-          <div className="tag-container">
-            {selectedRoomData.tagsData?.map((tag: any) => {
-              return <div className="tag">{tag.name}</div>;
-            })}
-          </div>
-          <div style={{ alignSelf: "flex-end", width: "fit-content" }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "smaller",
-                width: "fit-content",
-                marginTop: "5px",
-              }}
-            >
-              {selectedRoomData.capacity} Seat Capacity
-            </p>
-          </div>
-        </div>
-      </div>
+      <CalendarRoomInfo></CalendarRoomInfo>
 
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div className="calendar-grid">
@@ -173,8 +141,16 @@ const Calendar = () => {
           <div className="calendar-header">Sat</div>
           {renderCalendar()}
         </div>
-        <div style={{ marginRight: "1rem", marginTop: "1rem" }}>
-          <button className="book-button" onClick={bookRoom}>
+        <div className="book-button">
+          <button
+            className="book-button"
+            onClick={bookRoom}
+            disabled={
+              avail.find((item: any) => item.session === selectedSession)
+                ? true
+                : false
+            }
+          >
             Book
           </button>
         </div>
@@ -183,38 +159,17 @@ const Calendar = () => {
         <div className="session-boxes">
           {sessions.map((session: any) => {
             return (
-              <div
-                key={`${session.startTime}`}
-                className="session-box"
-                onClick={() => {
-                  setSelectedSession(session._id);
-                }}
-                style={{
-                  border:
-                    selectedSession === session._id
-                      ? "2px solid darkgreen"
-                      : "1px solid lightgrey",
-                  backgroundColor: avail.find(
-                    (item: any) =>
-                      item.user === currentUser._id &&
-                      item.session === session._id
-                  )
-                    ? "green"
-                    : avail.find((item: any) => item.session === session._id)
-                    ? "rgba(208, 0, 0,0.5)"
-                    : "transparent",
-                }}
-              >
-                <span style={{ marginRight: "5px" }}>
-                  {" "}
-                  {session.startTime.split(" ")[0]}
-                </span>
-                -
-                <span style={{ marginLeft: "5px" }}>
-                  {" "}
-                  {session.endTime.split(" ")[0]}
-                </span>
-              </div>
+              <Session
+                session={session}
+                sameUserBooked={avail.find(
+                  (item: any) =>
+                    item.user === currentUser._id &&
+                    item.session === session._id
+                )}
+                anotherUserBooked={avail.find(
+                  (item: any) => item.session === session._id
+                )}
+              ></Session>
             );
           })}
         </div>

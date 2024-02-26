@@ -1,11 +1,12 @@
-import useHomeStore from "../homeStore";
-import "./Room.css";
+import useHomeStore from "../../store/homeStore";
+import "../styles/Room.css";
 
 type RoomProps = {
   roomData: any;
+  availabilityStatus: any;
 };
 
-const Room: React.FC<RoomProps> = ({ roomData }) => {
+const Room: React.FC<RoomProps> = ({ roomData, availabilityStatus }) => {
   const setSelectedRoomData = useHomeStore(
     (state) => state.setSelectedRoomData
   );
@@ -26,17 +27,23 @@ const Room: React.FC<RoomProps> = ({ roomData }) => {
       }}
     >
       <div>
-        <h3 style={{ fontWeight: "normal" }}>{roomData?.name}</h3>
+        <h3 style={{ fontWeight: "normal", width: "fit-content" }}>
+          {roomData?.name}
+        </h3>
         <div>
           <p style={{ fontSize: "smaller", fontWeight: "normal" }}>
-            {roomData.availability}
+            {availabilityStatus}
           </p>
         </div>
       </div>
       <div className="room-right">
         <div className="room-tag-container">
           {roomData.tagsData?.map((tag: any) => {
-            return <div className="room-tag">{tag.name}</div>;
+            return (
+              <div className="room-tag" key={`t${tag._id}-left`}>
+                {tag.name}
+              </div>
+            );
           })}
         </div>
 
