@@ -1,38 +1,51 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Room from "../atoms/Room";
-import "./css/RoomList.css";
-import useHomeStore from "../homeStore";
+import "../styles/RoomList.css";
+import useHomeStore from "../../store/homeStore";
+import endpoints from "../../utils/endpoints";
 const RoomList: React.FC = () => {
   const roomsData = useHomeStore((state) => state.roomsData);
-  const setRoomsData = useHomeStore((state) => state.setRoomData);
-  const setSelectedRoomData = useHomeStore(
-    (state) => state.setSelectedRoomData
+  const [nextAvaialableSlots, setNextAvailableSlots] = useState<any>({});
+  const bookRoomCalledSwitch = useHomeStore(
+    (state) => state.bookRoomCalledSwitch
   );
 
   useEffect(() => {
-    fetchRoomsData();
+    fetchNextAvailableSlots();
   }, []);
 
-  const fetchRoomsData = async () => {
+  useEffect(() => {
+    fetchNextAvailableSlots();
+  }, [bookRoomCalledSwitch]);
+
+  async function fetchNextAvailableSlots() {
     try {
-      const response = await axios.get("http://localhost:3001/api/rooms", {
+      const response = await axios.get(endpoints.getClosestAvailableSlots, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
-
-      setRoomsData(response.data);
-      setSelectedRoomData(response.data[0]);
+      setNextAvailableSlots(response.data);
     } catch (error) {
-      console.error("Error fetching rooms:", error);
+      console.error("Error fetching next available slots:", error);
     }
-  };
+  }
+
+  if (roomsData.length === 0) {
+    return <></>;
+  }
 
   return (
     <div className="room-list">
       {roomsData.map((room: any, index: any) => {
-        return <Room key={room._id} roomData={room}></Room>;
+        return (
+          <Room
+            key={room._id}
+            roomData={room}
+            availabilityStatus={nextAvaialableSlots[room._id]}
+          ></Room>
+        );
       })}
     </div>
   );
