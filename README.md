@@ -6,6 +6,12 @@ This is the frontend application for the Room Booking project.
 
 The Room Booking application allows users to book rooms for various purposes. It provides a user-friendly interface to view available rooms, check their details, and book sessions.
 
+## Technologies Used
+
+- **React.js with TypeScript**: The frontend is built using React.js, a JavaScript library for building user interfaces, along with TypeScript for static typing.
+- **Axios**: A promise-based HTTP client for making requests to the backend API.
+- **Zustand**: A state management library for React applications.
+
 ## How to Run
 
 1. Clone the repository:
