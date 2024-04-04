@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import useHomeStore from "../../store/homeStore";
 import "../styles/Room.css";
+import axios from "axios";
 
 type RoomProps = {
   roomData: any;
@@ -10,8 +12,34 @@ const Room: React.FC<RoomProps> = ({ roomData, availabilityStatus }) => {
   const setSelectedRoomData = useHomeStore(
     (state) => state.setSelectedRoomData
   );
+  const [imageSrc, setImageSrc] = useState("");
 
   const selectedRoomData = useHomeStore((state) => state.selectedRoomData);
+
+  useEffect(() => {
+    fetchImage();
+  }, []);
+
+  async function fetchImage() {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/api/images/${roomData.imageLink}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+          responseType: "arraybuffer",
+        }
+      );
+      if (response.status === 200) {
+        const blob = new Blob([response.data], { type: "image/png" });
+        const imageUrl = URL.createObjectURL(blob);
+        setImageSrc(imageUrl);
+      } else {
+        console.error(`Error fetching image: ${response.statusText}`);
+      }
+    } catch (error) {}
+  }
 
   return (
     <div
@@ -27,6 +55,7 @@ const Room: React.FC<RoomProps> = ({ roomData, availabilityStatus }) => {
       }}
     >
       <div>
+        <img src={imageSrc} width={"100px"} height={"100px"}></img>
         <h3 style={{ fontWeight: "normal", width: "fit-content" }}>
           {roomData?.name}
         </h3>
