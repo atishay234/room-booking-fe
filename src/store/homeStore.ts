@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 export interface IHome {
+  isAccessTokenUpdated: boolean;
   roomsData: any[];
   sessions: any[];
   selectedRoomData: any;
@@ -13,9 +14,11 @@ export interface IHome {
   setRoomData: (roomData: any) => void;
   setBookRoomCalledSwitch: (newValue: boolean) => void;
   setSelectedRoomData: (roomData: any) => void;
+  setIsAccessTokenUpdated: (newIsAccessTokenUpdated: boolean) => void;
 }
 
 const useHomeStore = create<IHome>((set, get) => ({
+  isAccessTokenUpdated: false,
   roomsData: [],
   sessions: [],
   selectedRoomData: "",
@@ -43,6 +46,10 @@ const useHomeStore = create<IHome>((set, get) => ({
 
   setSelectedRoomData: (roomId) => {
     set({ selectedRoomData: roomId });
+  },
+
+  setIsAccessTokenUpdated: (newIsAccesTokenUpdated) => {
+    set({ isAccessTokenUpdated: newIsAccesTokenUpdated });
   },
 }));
 

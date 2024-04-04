@@ -10,6 +10,9 @@ import endpoints from "../../utils/endpoints";
 
 const HomePage = () => {
   const roomsData = useHomeStore((state) => state.roomsData);
+  const setIsAccessTokenUpdated = useHomeStore(
+    (state) => state.setIsAccessTokenUpdated
+  );
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
       fetchAccessToken();
@@ -21,6 +24,7 @@ const HomePage = () => {
       const token = response.data.token;
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("accessToken", token);
+      setIsAccessTokenUpdated(true);
     } catch (error) {
       console.error("Error fetching access token:", error);
     }

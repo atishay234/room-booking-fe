@@ -6,6 +6,9 @@ import "../styles/Search.css";
 
 const Search: React.FC = () => {
   const setRoomsData = useHomeStore((state) => state.setRoomData);
+  const isAccessTokenUpdated = useHomeStore(
+    (state) => state.isAccessTokenUpdated
+  );
   const setSelectedRoomData = useHomeStore(
     (state) => state.setSelectedRoomData
   );
@@ -13,7 +16,7 @@ const Search: React.FC = () => {
 
   useEffect(() => {
     fetchRoomsData();
-  }, [searchQuery]);
+  }, [searchQuery, isAccessTokenUpdated]);
 
   const fetchRoomsData = async () => {
     try {
